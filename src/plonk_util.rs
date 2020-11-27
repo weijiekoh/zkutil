@@ -85,7 +85,7 @@ impl<E: Engine> SetupForProver<E> {
         let worker = Worker::new();
         let key_lagrange_form = Crs::<E, CrsForLagrangeForm>::from_powers(
             self.key_monomial_form.as_ref().expect("Setup should have universal setup struct"),
-            (1024) as usize,
+            self.setup_polynomials.n.next_power_of_two(),
             &worker,
         );
         let proof = prove::<_, _, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(
