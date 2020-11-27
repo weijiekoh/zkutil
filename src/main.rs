@@ -176,6 +176,8 @@ fn prove(opts: ProveOpts) {
         panic!("Deprecated");
     }
 
+    let setup = io::load_setup(&opts.setup);
+
     // let rng = create_rng();
     // let params = load_params_file(&opts.params);
     // let circuit_file = resolve_circuit_file(opts.circuit);
