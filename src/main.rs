@@ -41,7 +41,7 @@ enum SubCommand {
 #[derive(Clap)]
 struct ProveOpts {
     /// Plonk universal setup key file
-    #[clap(short = "u", long = "key_setup", default_value = "setup.key")]
+    #[clap(short = "u", long = "setup", default_value = "setup.key")]
     setup: String,
     /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
     #[clap(short = "c", long = "circuit")]
@@ -172,40 +172,35 @@ fn resolve_circuit_file(filename: Option<String>) -> String {
 }
 
 fn prove(opts: ProveOpts) {
-    if opts.proof_system == ProofSystem::Plonk {
-        unimplemented!();
+    if opts.proof_system != ProofSystem::Plonk {
+        panic!("Deprecated");
     }
 
-    let rng = create_rng();
-    let params = load_params_file(&opts.params);
-    let circuit_file = resolve_circuit_file(opts.circuit);
-    println!("Loading circuit from {}...", circuit_file);
-    let circuit = CircomCircuit {
-        r1cs: load_r1cs(&circuit_file),
-        witness: Some(witness_from_json_file::<Bn256>(&opts.witness)),
-        wire_mapping: None,
-        aux_offset: opts.proof_system.aux_offset(),
-    };
-    println!("Proving...");
-    let proof = prove2(circuit.clone(), &params, rng).unwrap();
-    proof_to_json_file(&proof, &opts.proof).unwrap();
-    fs::write(&opts.public, circuit.get_public_inputs_json().as_bytes()).unwrap();
-    println!("Saved {} and {}", opts.proof, opts.public);
+    // let rng = create_rng();
+    // let params = load_params_file(&opts.params);
+    // let circuit_file = resolve_circuit_file(opts.circuit);
+    // println!("Loading circuit from {}...", circuit_file);
+    // let circuit = CircomCircuit {
+    //     r1cs: load_r1cs(&circuit_file),
+    //     witness: Some(witness_from_json_file::<Bn256>(&opts.witness)),
+    //     wire_mapping: None,
+    //     aux_offset: opts.proof_system.aux_offset(),
+    // };
+    // println!("Proving...");
+    // let proof = prove2(circuit.clone(), &params, rng).unwrap();
+    // proof_to_json_file(&proof, &opts.proof).unwrap();
+    // fs::write(&opts.public, circuit.get_public_inputs_json().as_bytes()).unwrap();
+    // println!("Saved {} and {}", opts.proof, opts.public);
 }
 
 fn verify(opts: VerifyOpts) {
-    let correct: bool;
-    match opts.proof_system {
-        ProofSystem::Plonk => {
-            let vk = io::load_verification_key::<Bn256>(&opts.vk);
-            let proof = io::load_proof::<Bn256>(&opts.proof);
-            correct = plonk_verify(&vk, &proof).unwrap();
-        }
-        _ => {
-            panic!("Deprecated");
-        }
+    if opts.proof_system != ProofSystem::Plonk {
+        panic!("Deprecated");
     }
 
+    let vk = io::load_verification_key::<Bn256>(&opts.vk);
+    let proof = io::load_proof::<Bn256>(&opts.proof);
+    let correct = plonk_verify(&vk, &proof).unwrap();
     if correct {
         println!("Proof is correct");
     } else {
